@@ -10,45 +10,62 @@ This example have to relay settings and routes between OpenSwitch and Gobgp usin
 
 Install the docker environment referring to the [here](https://docs.docker.com/engine/installation/ubuntulinux/).
 
-## Running OpenSwitch container
-- Pull image
- ```bash
- $ sudo docker pull osrg/openswitch
- $ sudo docker images
- REPOSITORY           TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
- osrg/openswitch   latest              6509d58db7f5        2 hours ago         1.338 GB
- ```
+## Getting and Running OpenSwitch container
+- Getting image
 
-- Run container
+ Thera are two ways, to get OpenSwitch container image.
+ First way, get image from DockerHub using the **docker pull** command.
+ Second way, build the iamge from Dockerfile in Ops-GoBGP repository using the **docker build** command.
+
+ - In the case of **docker pull**
+  ```bash
+  $ sudo docker pull nhanaue/openswitch
+  $ sudo docker images
+  REPOSITORY           TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+  nhanaue/openswitch   latest              6509d58db7f5        2 hours ago         1.278 GB
+  ```
+
+ - In the case of **docker build**
+  ```bash
+  $ git clone https://github.com/h-naoto/ops-gobgp.git
+  $ cd ops-gobgp/docker
+  $ sudo docker build -t nhanaue/openswitch .
+  $ sudo docker images
+  REPOSITORY           TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+  nhanaue/openswitch   latest              bcff835707aa        1 hours ago         1.278 GB
+  ```
+
+
+- Running container
  ```bash
- sudo docker run --privileged -v /tmp:/tmp -v /dev/log:/dev/log -v /sys/fs/cgroup:/sys/fs/cgroup -h ops --name ops osrg/openswitch /sbin/init &
+ sudo docker run --privileged -v /tmp:/tmp -v /dev/log:/dev/log -v /sys/fs/cgroup:/sys/fs/cgroup -h ops --name ops nhanaue/openswitch /sbin/init &
  $ sudo docker ps -a
  CONTAINER ID        IMAGE                COMMAND             CREATED             STATUS              PORTS               NAMES
-452f31c31be6        osrg/openswitch   "/sbin/init"        4 seconds ago       Up 2 seconds                            ops
+ 452f31c31be6        nhanaue/openswitch   "/sbin/init"        4 seconds ago       Up 2 seconds                            ops
  $ sudo docker exec -it ops bash
  ```
 
 ## Installing GoBGP
 
 - Preparation
-```bash
+ ```bash
  bash-4.3# echo "nameserver 8.8.8.8" >> /etc/resolv.conf
  ```
 
-- Install GoBGP
-```bash
+- Go get  GoBGP
+ ```bash
  bash-4.3# go get -v github.com/osrg/gobgp/gobgpd
  bash-4.3# go get -v github.com/osrg/gobgp/gobgp
  ```
 
 ## Installing Ops-GoBGP
 - Clone source
-```bash
- bash-4.3# git clone https://github.com/osrg/ops-gobgp.git
+ ```bash
+ bash-4.3# git clone https://github.com/h-naoto/ops-gobgp.git
  ```
 
 - Install dependent libraries of python
-```bash
+ ```bash
  bash-4.3# cd ops-gobgp
  bash-4.3# pip install -r pip-requires.txt
  ```
@@ -80,7 +97,7 @@ Install the docker environment referring to the [here](https://docs.docker.com/e
 
 - Starting GoBGP
  ```bash
- bash-4.3# gobgpd -p --openswitch
+ bash-4.3# gobgpd -p
  INFO[0000] gobgpd started
  INFO[0000] Read Configuration from OpenSwitch
  ```
