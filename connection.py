@@ -92,7 +92,7 @@ class OpsConnection(Connection):
             utils.wait_for_change(self.idl, self.timeout)
             self.poller = poller.Poller()
 
-            self.hdr = handle.OpsHandler(self.idl, self)
+            self.hdr = handle.OpsHandler(self)
         self.conn_f = conn
         super(OpsConnection, self).connect()
 
@@ -129,9 +129,10 @@ class OpsConnection(Connection):
 
 
 class GobgpConnection(Connection):
-    def __init__(self, gobgp_url, gobgp_port):
+    def __init__(self, gobgp_url, gobgp_port, af):
         self.gobgp_url = gobgp_url
         self.gobgp_port = gobgp_port
+        self.af = af
         self.channel = implementations.insecure_channel(gobgp_url, gobgp_port)
         super(GobgpConnection, self).__init__()
 
@@ -143,7 +144,7 @@ class GobgpConnection(Connection):
             s.close()
             g_conn = api.beta_create_GobgpApi_stub(self.channel)
 
-            self.hdr = handle.GobgpHandler(g_conn)
+            self.hdr = handle.GobgpHandler(g_conn, self.af)
         self.conn_f = conn
         super(GobgpConnection, self).connect()
 
@@ -153,9 +154,12 @@ class GobgpConnection(Connection):
         return self.th
 
     def run(self):
+        af = utils.RF_IPv4_UC
+        if self.af == "ipv6":
+            af = utils.RF_IPv6_UC
         while True:
             log.info('Wait for a change the bestpath from gobgp...')
-            monitor_argument = {'family': utils.RF_IPv4_UC}
+            monitor_argument = {'family': af}
             self.hdr.monitor_bestpath_chenged(monitor_argument)
             time.sleep(3)
         log.info('run_ops_to_gogbp thread is end')

@@ -39,8 +39,17 @@ def main():
                       help='specifying a log level')
     parser.add_option('-f', '--log-file', dest='log_file', default=None,
                       help='specifying the output destination of the log file')
+    parser.add_option('-a', '--address-family', dest='af', default='ipv4',
+                      help='specifying the address family to operate')
 
     (options, args) = parser.parse_args()
+
+    try:
+        utils.validate_option(options)
+    except Exception as e:
+        print(e)
+        exit(1)
+
 
     log.init_log(options.log_level, options.log_file)
     signal.signal(signal.SIGINT, utils.receive_signal)
@@ -48,7 +57,7 @@ def main():
     # connection with each
     ops = OpsConnection(options.ovsdb)
     ops.connect()
-    gobgp = GobgpConnection(options.gobgp_url, int(options.gobgp_port))
+    gobgp = GobgpConnection(options.gobgp_url, int(options.gobgp_port), options.af)
     gobgp.connect()
 
     # get handler

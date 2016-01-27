@@ -15,13 +15,18 @@
 
 import os
 import time
+import netaddr
 from ovs.db import idl
 from ovs import jsonrpc, poller, stream
 
 
 AFI_IP = 1
+AFI_IP6 = 2
+
 SAFI_UNICAST = 1
+
 RF_IPv4_UC = AFI_IP << 16 | SAFI_UNICAST
+RF_IPv6_UC = AFI_IP6 << 16 | SAFI_UNICAST
 
 
 class ExceptionResult(object):
@@ -90,3 +95,24 @@ def get_column_value(row, col):
         if len(val) == 1:
             val = val[0]
     return val
+
+
+def validate_url(url):
+    try:
+        _ = netaddr.IPAddress(url)
+    except Exception as e:
+        raise(e)
+
+
+def validate_port(port):
+    if port > 65535 or port < 1:
+        raise('invalid port number: {0}'.format(port))
+
+
+def validate_af(af):
+    if not (af == 'ipv4' or af == 'ipv6'):
+        raise('Do not support address family: {0}'.format(af))
+
+
+def validate_option(options):
+    validate_af(options.af)

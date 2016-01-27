@@ -31,11 +31,12 @@ log = logging.getLogger('handler')
 
 
 class OpsHandler():
-    def __init__(self, idl, conn):
+    def __init__(self, conn):
         self.router_id = None
         self.neighbors = []
-        self.idl = idl
         self.conn = conn
+        self.idl = conn.idl
+        self.af = conn.af
         self.timeout = 5
 
     def set_handler(self, gobgp_handler):
@@ -215,7 +216,7 @@ class OpsHandler():
                         row_nh.type = 'unicast'
 
                     row_path = txn.insert(self.idl.tables['BGP_Route'])
-                    row_path.address_family = 'ipv4'
+                    row_path.address_family = bgp_path['af']
                     row_path.bgp_nexthops = row_nh
                     row_path.distance = []
                     row_path.metric = 0
@@ -264,8 +265,9 @@ def grpc_request(f):
 
 
 class GobgpHandler():
-    def __init__(self, g_conn):
+    def __init__(self, g_conn, af):
         self.g_conn = g_conn
+        self.af = af
         self.timeout = 3
         self.monitor_timeout = 1000
 
@@ -299,6 +301,7 @@ class GobgpHandler():
                 prefix = nlri[0].prefix
                 log.debug('Recv bgp route from gobgp: prefix={0}, withdraw={1}'.format(prefix, path.is_withdraw))
                 bgp_path = {'prefix': prefix,
+                            'af': self.af,
                             'metric': 0,
                             'is_withdraw': path.is_withdraw}
                 bgp_pathattr = {'BGP_uptime': '',
